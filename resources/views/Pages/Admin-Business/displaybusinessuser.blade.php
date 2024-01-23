@@ -1,66 +1,112 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | Business User</title>
-</head>
-<body>
-    @if(session('alertMessage'))
-    <script>alert("{{session('alertMessage')}}")</script>
-    @endif
-<script src="{{ asset('/js/application.js') }}"></script>
-<link rel="stylesheet" href="{{ asset('/css/application.css') }}">
-    @include('Pages.templates.sidebar')
-    <div id="edit-box">
-    <form action="" method="POST">
+@extends('Pages.tablelayout')
+@section('title', 'Admin | Business Users')
+@section('pagename','Business Users')
+@section('updatecontent')
+
+<form id="userForm" action="" method="POST">
     @csrf
     @method('post')
-        <button  id="update-btn" formaction="{{route('toBusinessUserActions',['actionType' => 'Edit'])}}" hidden>Update All Data</button>
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Business Name</th>
-            <th>User Email</th>
-            <th>Actions</th>
-        </tr>
-        @foreach($busers as $buser)
-        <tr id = "{{$buser->id}}">
-        <td><input class="column-data" type="text" name="{{'businessuserid'.$rowCount}}" value={{$buser->id}} readonly></td>
-        <td><input class="column-data" type="text" name="{{$buser-> business-> businessName}}" value={{$buser-> business-> businessName}} readonly>
-            <select class="column-data" name="{{'businessname'.$rowCount}}" id="businessOptions" hidden>
-        @foreach($businesses as $business)
-        <option value="{{$business -> businessName}}" id="business-name">{{$business -> businessName}} ({{$business->btype->businessTypeName}})</option>
-        @endforeach
-    </select></td>
-    <td><input class="column-data" type="text" name="{{$buser-> user-> email}}" value={{$buser-> user-> email}} readonly>
-        <select class="column-data" name="{{'useremail'.$rowCount}}" id="userOptions" hidden>
-        @foreach($users as $user)
-        <option value="{{$user -> email}}" id="user-email">{{$user -> email}} ({{$user->FirstName}} {{$user->LastName}})</option>
-        @endforeach
-    </select></td>
-        <td>
-            <button class="column-data" type="button" onclick="bUserEdit(event)">Edit</button><button class="column-data" type="button" hidden onclick="cancelbUserEdit(event)">Cancel Edit</button>
-            <br><button name="deletebtn" class="column-data" value="{{$buser->id}}" formaction="{{route('toBusinessUserActions',['actionType' => 'Delete'])}}">Delete</button>
-    
-        </td>
-        </tr>
-        <input hidden type="text" name="rowcount" value="{{$rowCount}}">
-        @php
-        $rowCount++;
-        @endphp
-        @endforeach
+    <div class="text-right mb-3">
+        <button id="update-btn" onclick="removeBusinessUserData()" formaction="{{route('toBusinessUserActions',['actionType' => 'Edit'])}}" hidden><i class="fa-solid fa-floppy-disk"></i> Update All Data</button>
+    </div>
 
+    <table id="example1" class="table table-bordered table-striped" width="100%">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Business Name</th>
+                <th>User Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <input hidden type="text" id="rowcount" name="rowcount" value="">
+            @foreach($busers as $buser)
+            <tr id="{{ $buser->id }}">
+                <td>
+                    <label hidden>{{ $buser->id ?? 'N/A' }}</label>
+                    <input type="text" class="form-control" name="{{ 'businessuserid' . $rowcount }}" value="{{ $buser->id ?? 'N/A' }}" readonly>
+                </td>
+                <td>
+                    <label hidden>{{ $buser->business->businessName ?? 'N/A' }}</label>
+                    <input type="text" class="form-control" name="{{ 'businessname' . $rowcount }}" value="{{ $buser->business->businessName ?? 'N/A' }}" readonly>
+                    <select class="form-control" name="{{ 'businessname' . $rowcount }}" id="businessOptions" hidden>
+                        @foreach($businesses as $business)
+                            <option value="{{ $business->businessName }}" id="business-name">{{ $business->businessName }} ({{ $business->btype->businessTypeName }})</option>
+                        @endforeach
+                    </select>
+                </td>
+                <td>
+                    <label hidden>{{ $buser->user->email ?? 'N/A' }}</label>
+                    <input type="text" class="form-control" name="{{ 'useremail' . $rowcount }}" value="{{ $buser->user->email ?? 'N/A' }}" readonly>
+                    <select class="form-control" name="{{ 'useremail' . $rowcount }}" id="userOptions" hidden>
+                        @foreach($users as $user)
+                            <option value="{{ $user->email }}" id="user-email">{{ $user->email }} ({{ $user->FirstName }} {{ $user->LastName }})</option>
+                        @endforeach
+                    </select>
+                </td>
+                <td>
+                    <button class="form-control edit-btn" type="button" onclick="bUserEdit(event,{{ $rowcount }})"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="form-control cancel-btn" type="button" onclick="cancelbUserEdit(event,{{ $rowcount }})" hidden><i
+                            class="fa-solid fa-ban"></i></button>
+                    <br>
+                    <button class="form-control delete-btn" name="deletebtn" value="{{ $buser->id }}" formaction="{{route('toBusinessUserActions',['actionType' => 'Delete'])}}"><i class="fa-solid fa-trash-can"></i></button>
+                </td>
+            </tr>
+            @php
+            $rowcount++;
+            @endphp
+            @endforeach
+        </tbody>
     </table>
-    </form>
-    </div>
-    <button type="button" onclick="showAddBox()">New Business User</button>
-    <div id="add-box" hidden>
-    <form id="addpackageForm" method="POST" action="" enctype="multipart/form-data">
+</form>
+<script>
+    $(document).ready(function () {
+
+        $('.edit-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-primary btn-block');
+        });
+        $('.delete-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-danger btn-block btn-sm');
+        });
+        $('.cancel-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-danger btn-block btn-sm');
+        });
+        $('#update-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-success btn-block');
+        });
+
+
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        var userForm = document.getElementById('userForm');
+
+        // Initialize DataTables
+        var example1Table = $('#example1').DataTable({
+            scrollX: true,
+            scrollY: 400,
+            // Other DataTable options as needed
+        });
+
+        // Your other JavaScript code...
+
+        // Example: Submitting form with DataTables
+
+    });
+</script>
+@endsection
+
+@section('buttonText','New Business User')
+@section('addBoxContent')
+@section('addBoxType','showAddBox()')
     @include('Pages.Admin-Business.addbusinessuser')
-    <button type="submit" formaction="{{route('toBusinessUserActions',['actionType' => 'Add'])}}">Add New Business User</button>
-    </form>
-    <button type="button" onclick="closeAddBox()">Cancel</button>
-    </div>
-</body>
-</html>
+@endsection

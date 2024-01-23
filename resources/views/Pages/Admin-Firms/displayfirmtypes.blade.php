@@ -1,51 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | Firm Type</title>
-</head>
-<body>
-    @if(session('alertMessage'))
-    <script>alert("{{session('alertMessage')}}")</script>
-    @endif
-<script src="{{ asset('/js/application.js') }}"></script>
-<link rel="stylesheet" href="{{ asset('/css/application.css') }}">
-    @include('Pages.templates.sidebar')
-    <div id="edit-box">
-    <form action="" method="POST">
-    @csrf
-    @method('post')
-        <button  id="update-btn" formaction="{{route('toFirmTypeActions',['actionType' => 'Edit'])}}" hidden>Update All Data</button>
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Firm Type Name</th>
-            <th>Actions</th>
-        </tr>
-        @foreach($FirmTypes as $firmType)
-        <tr id = "{{$firmType->id}}">
-        <td><input class="column-data" type="text" name="{{'firmTypeID'.$rowCount}}" value={{$firmType->id}} readonly></td>
-        <td><input class="column-data" type="text" name="{{'firmTypeName'.$rowCount}}" value={{$firmType->name}} readonly></td>
-        <td>
-            <button class="column-data" type="button" onclick="firmTypeEdit(event)">Edit</button><button class="column-data" type="button" hidden onclick="cancelfirmTypeEdit(event)">Cancel Edit</button>
-            <br><button name="deletebtn" class="column-data" value="{{$firmType->id}}" formaction="{{route('toFirmTypeActions',['actionType' => 'Delete'])}}">Delete</button>
-    
-        </td>
-        </tr>
-        <input hidden type="text" name="rowcount" value="{{$rowCount}}">
-        @php
-        $rowCount++;
-        @endphp
-        @endforeach
+@extends('Pages.tablelayout')
+@section('title', 'Admin | Firm Types')
+@section('pagename', 'Firm Types')
+@section('updatecontent')
+    <form id="userForm" action="" method="POST">
+        @csrf
+        @method('post')
+        <div class="text-right mb-3">
+            <button id="update-btn" onclick="removeData()" formaction="{{route('toFirmTypeActions',['actionType' => 'Edit'])}}" hidden><i class="fa-solid fa-floppy-disk"></i> Update All Data</button>
+        </div>
 
-    </table>
+        <table id="example1" class="table table-bordered table-striped" width="100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Firm Type Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <input hidden type="text" id="rowcount" name="rowcount" value="">
+                @foreach($FirmTypes as $firmType)
+                    <tr id="{{ $firmType->id }}">
+                        <td>
+                            <label hidden>{{ $firmType->id ?? 'N/A' }}</label>
+                            <input type="text" class="form-control" name="{{ 'firmTypeID' . $rowcount }}" value="{{ $firmType->id ?? 'N/A' }}" readonly>
+                        </td>
+                        <td>
+                            <label hidden>{{ $firmType->name ?? 'N/A' }}</label>
+                            <input type="text" class="form-control" name="{{ 'firmTypeName' . $rowcount }}" value="{{ $firmType->name ?? 'N/A' }}" readonly>
+                        </td>
+                        <td>
+                            <button class="form-control edit-btn" type="button" onclick="firmTypeEdit(event,{{ $rowcount }})"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button class="form-control cancel-btn" type="button" onclick="cancelfirmTypeEdit(event,{{ $rowcount }})" hidden><i class="fa-solid fa-ban"></i> </button>
+                            <br>
+                            <button class="form-control delete-btn" name="deletebtn" value="{{ $firmType->id }}" formaction="{{ route('toFirmTypeActions', ['actionType' => 'Delete']) }}"><i class="fa-solid fa-trash-can"></i> </button>
+                        </td>
+                    </tr>
+                    @php
+                        $rowcount++;
+                    @endphp
+                @endforeach
+            </tbody>
+        </table>
     </form>
-    </div>
-    <button type="button" onclick="showAddBox()">New Firm Type</button>
-    <div id="add-box" hidden>
+    <script>
+    $(document).ready(function () {
+
+        $('.edit-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-primary btn-block');
+        });
+        $('.delete-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-danger btn-block btn-sm');
+        });
+        $('.cancel-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-danger btn-block btn-sm');
+        });
+        $('#update-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-success btn-block');
+        });
+
+
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        var userForm = document.getElementById('userForm');
+
+        // Initialize DataTables
+        var example1Table = $('#example1').DataTable({
+            scrollX: true,
+            scrollY: 400,
+            // Other DataTable options as needed
+        });
+
+        // Your other JavaScript code...
+
+        // Example: Submitting form with DataTables
+
+    });
+</script>
+@endsection
+
+@section('buttonText','New Firm Type')
+@section('addBoxContent')
+@section('addBoxType','showAddBox()')
     @include('Pages.Admin-Firms.addfirmtypes')
-    <button type="button" onclick="closeAddBox()">Cancel</button>
-    </div>
-</body>
-</html>
+@endsection

@@ -12,6 +12,23 @@ class PostOffice extends Model
     use SoftDeletes;
     protected $table='postoffice'; 
     public function postcode(){
-        return $this->belongsTo(PostCode::class,'id');
+        return $this->hasMany(PostCode::class,'postOfficeID','id');
+    }
+    public static $relationships = [];
+    public static function getRelationships()
+    {
+        return self::$relationships;
+    }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($postoffice) {
+            // Delete related subscriptions
+            $postoffice->postcode()->get()->each(function ($postcode) {
+                $postcode->delete();
+            });
+            
+        });
     }
 }

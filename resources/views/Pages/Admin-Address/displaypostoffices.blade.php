@@ -1,54 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | Post Offices</title>
-</head>
-<body>
-    @if(session('alertMessage'))
-    <script>alert("{{session('alertMessage')}}")</script>
-    @endif
-<script src="{{ asset('/js/application.js') }}"></script>
-<link rel="stylesheet" href="{{ asset('/css/application.css') }}">
-    @include('Pages.templates.sidebar')
-    <div id="edit-box">
-    <form action="" method="POST">
-    @csrf
+@extends('Pages.tablelayout')
+@section('title', 'Admin | Post Offices')
+@section('pagename','Post Offices')
+@section('updatecontent')
+<form id="userForm" action="" method="POST">
+@csrf
     @method('post')
-        <button  id="update-btn" formaction="{{route('toPostOfficeActions',['actionType' => 'Edit'])}}" hidden>Update All Data</button>
-    <table>
+<div class="text-right mb-3"> <!-- Added mb-3 class for margin-bottom -->
+        <button id="update-btn" onclick="removeData()" formaction="{{route('toPostOfficeActions',['actionType' => 'Edit'])}}"
+            hidden><i class="fa-solid fa-floppy-disk"></i> Update All Entries</button>
+    </div>
+<table id="example1" class="table table-bordered table-striped" width="100%">
+    <thead>
         <tr>
             <th>ID</th>
             <th>Post Office Name</th>
             <th>Actions</th>
         </tr>
+        </thead>
+        <tbody>
+        
+        <input hidden type="text" id="rowcount" name="rowcount" value="">
         @foreach($postoffices as $postoffice)
         <tr id = "{{$postoffice->id}}">
-        <td><input class="column-data" type="text" name="{{'postofficeID'.$rowCount}}" value={{$postoffice->id}} readonly></td>
-        <td><input class="column-data" type="text" name="{{'postofficeName'.$rowCount}}" value={{$postoffice->name}} readonly></td>
         <td>
-            <button class="column-data" type="button" onclick="postOfficeEdit(event)">Edit</button><button class="column-data" type="button" hidden onclick="cancelpostOfficeEdit(event)">Cancel Edit</button>
-            <br><button name="deletebtn" class="column-data" value="{{$postoffice->id}}" formaction="{{route('toPostOfficeActions',['actionType' => 'Delete'])}}">Delete</button>
+            <label for="" hidden>{{$postoffice->id ?? 'N/A'}}</label>
+            <input class="form-control" type="text" name="{{'postofficeID'.$rowcount}}" value={{$postoffice->id ?? 'N/A'}} readonly>
+        </td>
+        <td>
+        <label for="" hidden>{{$postoffice->name ?? 'N/A'}}</label>
+            <input class="form-control" type="text" name="{{'postofficeName'.$rowcount}}" value="{{trim($postoffice->name) ?? 'N/A'}}" readonly></td>
+        <td>
+            <button class="form-control edit-btn" type="button" onclick="postOfficeEdit(event,{{$rowcount}})"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button class="form-control cancel-btn" type="button" hidden onclick="cancelpostOfficeEdit(event,{{$rowcount}})"><i
+                            class="fa-solid fa-ban"></i></button>
+            <br><button name="deletebtn" class="form-control delete-btn" value="{{$postoffice->id}}" formaction="{{route('toPostOfficeActions',['actionType' => 'Delete'])}}"><i class="fa-solid fa-trash-can"></i></button>
     
         </td>
         </tr>
-        <input hidden type="text" name="rowcount" value="{{$rowCount}}">
+        
         @php
-        $rowCount++;
+        $rowcount++;
         @endphp
         @endforeach
+        </tbody>
+</table>
+    </form>
+    <script>
+    $(document).ready(function () {
 
-    </table>
-    </form>
-    </div>
-    <button type="button" onclick="showAddBox()">New Post Office</button>
-    <div id="add-box" hidden>
-    <form id="addressTypeForm" method="POST" action="" enctype="multipart/form-data">
+        $('.edit-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-primary btn-block');
+        });
+        $('.delete-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-danger btn-block btn-sm');
+        });
+        $('.cancel-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-danger btn-block btn-sm');
+        });
+        $('#update-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-success btn-block');
+        });
+
+
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        var userForm = document.getElementById('userForm');
+
+        // Initialize DataTables
+        var example1Table = $('#example1').DataTable({
+            scrollX: true,
+            scrollY: 400,
+            // Other DataTable options as needed
+        });
+
+        // Your other JavaScript code...
+
+        // Example: Submitting form with DataTables
+
+    });
+</script>
+    @endsection
+    @section('buttonText','New Post Office')
+@section('addBoxContent')
+@section('addBoxType','showAddBox()')
     @include('Pages.Admin-Address.addpostoffices')
-    <button type="submit" formaction="{{route('toPostOfficeActions',['actionType' => 'Add'])}}">Add New Post Office</button>
-    </form>
-    <button type="button" onclick="closeAddBox()">Cancel</button>
-    </div>
-</body>
-</html>
+@endsection

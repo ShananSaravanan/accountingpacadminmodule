@@ -36,17 +36,29 @@ class User extends Authenticatable
 
     ];
     
-    public function honorific(){
-        return $this->belongsTo(HonorificCode::class,'HonorificCodeID');
+    public function honorific()
+    {
+        return $this->belongsTo(HonorificCode::class, 'HonorificCodeID', 'id');
     }
     public function roles(){
-        return $this->belongsTo(Role::class,'RoleID');
+        return $this->belongsTo(Role::class,'RoleID', 'id');
     }
     public function businessuser(){
-        return $this->belongsTo(BusinessUser::class,'id');
+        return $this->hasOne(BusinessUser::class,'userID','id');
     }
     public function address(){
-        return $this->belongsTo(Address::class,'id');
+        return $this->hasMany(Address::class,'id');
+    }
+    public function firmuser(){
+        return $this->hasOne(FirmUser::class,'userID','id');
+    }
+    public function subscriptions(){
+        return $this->hasMany(Subscription::class, 'userID','id');
+    }
+    public static $relationships = ['honorific','roles'];
+    public static function getRelationships()
+    {
+        return self::$relationships;
     }
     /**
      * The attributes that should be hidden for serialization.
@@ -67,4 +79,36 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+    protected static function boot()
+{
+    parent::boot();
+
+    static::deleting(function ($user) {
+        // Delete related subscriptions
+        $user->subscriptions()->get()->each(function ($sub) {
+            $sub->delete();
+        });
+        $user->businessuser()->get()->each(function ($buser) {
+            $buser->delete();
+        });
+        $user->firmuser()->get()->each(function ($fuser) {
+            $fuser->delete();
+        });
+        $user->address()->get()->each(function ($address) {
+            $address->delete();
+        });
+        
+        // ... other deletions
+    });
+    static::restoring(function ($user) {
+        // Restore related assignments
+        $user->honorific()->withTrashed()->get()->each(function ($honorific) {
+            $honorific->restore();
+        });
+        $user->roles()->withTrashed()->get()->each(function ($roles) {
+            $roles->restore();
+        });
+        
+    });
+}
 }

@@ -12,12 +12,40 @@ class PostCode extends Model
     use SoftDeletes;
     protected $table='postcode'; 
     public function address(){
-        return $this->belongsTo(Address::class,'id');
+        return $this->hasOne(Address::class,'postCodeID','id');
     }
     public function postoffice(){
-        return $this->belongsTo(PostOffice::class,'postOfficeID');
+        return $this->belongsTo(PostOffice::class,'postOfficeID','id');
     }
     public function statecode(){
-        return $this->belongsTo(StateCode::class,'stateCodeID');
+        return $this->belongsTo(StateCode::class,'stateCodeID','id');
+    }
+    public static $relationships = ['statecode','postoffice'];
+    public static function getRelationships()
+    {
+        return self::$relationships;
+    }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($postcode) {
+            // Delete related subscriptions
+            $postcode->address()->get()->each(function ($address) {
+                $address->delete();
+            });
+           
+        });
+        static::restoring(function ($postcode) {
+            // Restore related assignments
+            $postcode->statecode()->withTrashed()->get()->each(function ($statecode) {
+                $statecode->restore();
+            });
+            $postcode->postoffice()->withTrashed()->get()->each(function ($postoffice) {
+                $postoffice->restore();
+            });
+            
+           
+        });
     }
 }

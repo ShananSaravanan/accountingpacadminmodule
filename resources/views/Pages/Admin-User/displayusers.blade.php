@@ -1,94 +1,178 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token()}}">
-    <title>Document</title>
-</head>
+@extends('Pages.tablelayout')
+@section('title', 'Admin | Users')
+@section('pagename','Users')
+@section('updatecontent')
 
-<body>
-<script src="{{ asset('/js/application.js') }}"></script>
-<link rel="stylesheet" href="{{ asset('/css/application.css') }}">
 
-@if (session('alertMessage'))
-<script>alert('{{session('alertMessage')}}')</script>
-@endif
-@if(session('updateError'))
-<script>alert('{{session('updateError')}}')</script>
-@endif
 
-@include('Pages.templates.sidebar') 
-<div id="edit-box">
-<label for="">Display Filters</label>
-<select name="" id="" onchange="this.options[this.selectedIndex].value && (window.location = this.options[this.selectedIndex].value);"> 
-    <option value="/Pages/Admin-User/displayusers/allusers">All Users</option>
-    <option value="/Pages/Admin-User/displayusers/onlineusers">Currently Online</option>
-    <option value="/Pages/Admin-User/displayusers/offlineusers">Inactive Users</option>
-</select>
+<form id="userForm" action="" method="POST">
 
-<table>
-    <tr>
-    <th>ID</th>
-    <th>First Name</th>
-    <th>Last Name</th>
-    <th>Honorific Code</th>
-    <th>Role</th>
-    <th>Contact Number</th>
-    <th>Registered Email Address</th>
-    <th>Registered Password</th>
-    <th>Status</th>
-    <th>Actions</th>
-    </tr>
-    <form action="" method="POST">
     @csrf
     @method('post')
-    <button id="update-btn" onclick="removeGlobalData()" formaction="{{route('toUserActions',['actionType' => 'Edit'])}}" hidden>Update All Data</button>
-    @foreach($usersData as $userData)
-    <input name="rowcount" value={{$rowcount}} hidden>
-    <tr id = "{{ $userData->id }}" value="1">
-    <td ><input  type="text" class="column-data" name="{{'id'.$rowcount}}"  id="user-id" value={{$userData -> id}} readonly></td>
-    <td ><input type="text" class="column-data" name="{{'fname'.$rowcount}}" id="user-fname" value={{$userData -> FirstName}} readonly></td>
-    <td ><input type="text" class="column-data" name="{{'lname'.$rowcount}}" id="user-lname" value={{$userData -> LastName}} readonly></td>
-    <td >
-        <input type="text" class="column-data" id="user-hcode" name="{{$userData -> honorific -> id}}" value={{$userData -> honorific->CodeName}} readonly>
-        <select class="column-data" name="{{'hCode'.$rowcount}}" id="hCodeOptions" hidden>
-    @foreach($hCodeNames as $hCodeName)
-        <option value="{{$hCodeName -> CodeName}}" id="user-hcode2">{{$hCodeName -> CodeName}}</option>
-    @endforeach
-    </select>
-    </td>
-    <td >
-        <input type="text" class="column-data" id="user-rname" name="{{$userData -> roles -> id}}" value={{$userData -> roles->name}} readonly>
-        <select class="column-data" name="{{'role'.$rowcount}}" id="roleOptions" hidden>
-        @foreach($roleNames as $roleName)
-        <option value="{{$roleName -> name}}" id="user-rname2">{{$roleName -> name}}</option>
-        @endforeach
-    </select></td>
-    <td ><input type="text" class="column-data" name="{{'contact'.$rowcount}}" id="user-contact" value={{$userData -> contactNo}} readonly></td>
-    <td ><input type="text" class="column-data" name="{{'email'.$rowcount}}" id="user-email" value={{$userData -> email}} readonly></td>
-    <td ><input type="text" class="column-data" name="{{'password'.$rowcount}}" id="user-password" value={{$userData -> password}} readonly></td>
-    <td ><input type="text" class="column-data" name="{{'status'.$rowcount}}" id="user-status"  value={{$userData -> Status}} readonly></td>
-    <td >
-    <button class="column-data" type="button"  id="edit-btn" onclick="userEditMode(event)">Edit</button>
-    <button class="column-data" formaction="{{route('toUserActions',['actionType' => 'Delete'])}}" name="deletebtn" value="{{ $userData->id }}">Delete</button>
-    <button class="column-data" onclick="cancelUserEdit(event)" value={{$userData -> id}} id="cancel-btn" type="button" hidden>Cancel Edit</button> 
-</td> 
-    </tr>
-    @php
-    $rowcount++; 
-    @endphp
-    @endforeach
-    </form>
-</table>
-</div>
-<button type="button" onclick="showAddBox()">New User</button>
-<div id="add-box" hidden>
-<form action="" method="POST" >
-    @include('Pages.Admin-User.adduser')
-    <button formaction="{{route('toUserActions',['actionType' => 'Add'])}}"  id="addUserBtn">Add User</button>
-    </form>
-<button type="button" onclick="closeAddBox()"> Cancel</button>
-</div>
-</body>
-</html>
+    <div class="text-right mb-3"> <!-- Added mb-3 class for margin-bottom -->
+        <button id="update-btn" onclick="removeData()" formaction="{{route('toUserActions',['actionType' => 'Edit'])}}"
+            hidden><i class="fa-solid fa-floppy-disk"></i> Update All Entries</button>
+    </div>
+
+    <table id="example1" class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Honorific Code</th>
+                <th>Role</th>
+                <th>Contact</th>
+                <th>Email Address</th>
+                <th>Password</th>
+                <th>Status</th>
+                <th class="no-sort">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            <input hidden type="text" id="rowcount" name="rowcount" value="">
+            @foreach($usersData as $userData)
+
+            <tr id="{{ $userData->id ?? 'N/A'}}" value="{{ $userData->id ?? 'N/A'}}">
+
+                <td> <label hidden>{{$userData -> id?? 'N/A'}}</label>
+
+                    <input type="text" class="form-control" name="{{'id'.$rowcount}}" id="user-id"
+                        value="{{$userData -> id?? 'N/A'}}" readonly>
+
+                </td>
+                <td> <label hidden>{{$userData -> FirstName?? 'N/A'}}</label>
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="{{'fname'.$rowcount}}" id="user-fname"
+                            value={{$userData -> FirstName?? 'N/A'}} readonly>
+                    </div>
+                </td>
+                <td> <label hidden>{{$userData -> LastName?? 'N/A'}}</label>
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="{{'lname'.$rowcount}}" id="user-lname"
+                            value={{$userData -> LastName?? 'N/A'}} readonly>
+                    </div>
+                </td>
+                <td>
+                    <label hidden>{{$userData->honorific->CodeName?? 'N/A'}}</label>
+                    <div class="form-group text-center">
+                        <input type="text" class="form-control" id="user-hcode"
+                            name="{{$userData->honorific->id?? 'N/A'}}"
+                            value="{{$userData->honorific->CodeName?? 'N/A'}}" readonly>
+                    </div>
+                    <div class="form-group text-center">
+                        <select class="form-control" name="{{'hCode'.$rowcount}}" id="hCodeOptions" hidden>
+                            @foreach($hCodeNames as $hCodeName)
+                            <option value="{{$hCodeName->CodeName?? 'N/A'}}" id="user-hcode2">{{$hCodeName->CodeName??
+                                'N/A'}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </td>
+                <td> <label hidden>{{$userData -> roles->name?? 'N/A'}}</label>
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="user-rname"
+                            name="{{$userData -> roles -> id?? 'N/A'}}" value={{$userData -> roles->name?? 'N/A'}}
+                        readonly>
+                    </div>
+                    <select class="form-control" name="{{'role'.$rowcount}}" id="roleOptions" hidden>
+                        @foreach($roleNames as $roleName)
+                        <option value="{{$roleName -> name?? 'N/A'}}" id="user-rname2">{{$roleName -> name}}</option>
+                        @endforeach
+                    </select>
+                </td>
+                <td> <label hidden>{{$userData -> contactNo?? 'N/A'}}</label>
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="{{'contact'.$rowcount}}" id="user-contact"
+                            value={{$userData -> contactNo?? 'N/A'}} readonly>
+                    </div>
+                </td>
+                <td> <label hidden>{{$userData -> email?? 'N/A'}}</label>
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="{{'email'.$rowcount}}" id="user-email"
+                            value={{$userData -> email?? 'N/A'}} readonly>
+                    </div>
+                </td>
+                <td> <label hidden>{{$userData -> password?? 'N/A'}}</label>
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="{{'password'.$rowcount}}" id="user-password"
+                            value={{$userData -> password?? 'N/A'}} readonly>
+                    </div>
+                </td>
+                <td> <label hidden>{{$userData -> Status?? 'N/A'}}</label>
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="{{'status'.$rowcount}}" id="user-status"
+                            value={{$userData -> Status?? 'N/A'}} readonly>
+                    </div>
+                </td>
+                <td>
+                    <button class="form-control edit-btn" type="button" id="edit-btn"
+                        onclick="userEditMode(event,{{$rowcount}})"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button id="delete-btn" class="form-control delete-btn"
+                        formaction="{{route('toUserActions',['actionType' => 'Delete'])}}" name="deletebtn"
+                        value="{{ $userData->id ?? 'N/A'}}"><i class="fa-solid fa-trash-can"></i></button>
+                    <button class="form-control cancel-btn" onclick="cancelUserEdit(event,{{$rowcount}})"
+                        value="{{$userData -> id}}" id="cancel-btn" type="button" hidden><i
+                            class="fa-solid fa-ban"></i></button>
+                </td>
+            </tr>
+            @php
+            $rowcount++;
+            @endphp
+            @endforeach
+        </tbody>
+    </table>
+</form>
+<script>
+    $(document).ready(function () {
+
+        $('.edit-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-primary btn-block');
+        });
+        $('.delete-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-danger btn-block btn-sm');
+        });
+        $('.cancel-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-danger btn-block btn-sm');
+        });
+        $('#update-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-success btn-block');
+        });
+
+
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        var userForm = document.getElementById('userForm');
+
+        // Initialize DataTables
+        var example1Table = $('#example1').DataTable({
+            scrollX: true,
+            scrollY: 400,
+            // Other DataTable options as needed
+        });
+
+        // Your other JavaScript code...
+
+        // Example: Submitting form with DataTables
+
+    });
+</script>
+@endsection
+
+
+@section('buttonText','New User')
+@section('addBoxContent')
+@section('addBoxType','showAddBox()')
+@include('Pages.Admin-User.adduser')
+
+@endsection

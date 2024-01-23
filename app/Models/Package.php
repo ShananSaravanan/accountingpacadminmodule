@@ -12,6 +12,23 @@ class Package extends Model
     use SoftDeletes;
     protected $table="package";
     public function packageBase(){
-        return $this->belongsTo(PackageBase::class,'id');
+        return $this->hasMany(PackagePrice::class,'PackageID','id');
+    }
+    public static $relationships = [];
+    public static function getRelationships()
+    {
+        return self::$relationships;
+    }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($package) {
+            // Delete related subscriptions
+            $package->packageBase()->get()->each(function ($packageprice) {
+                $packageprice->delete();
+            });
+            
+        });
     }
 }

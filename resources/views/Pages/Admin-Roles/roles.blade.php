@@ -1,54 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | Roles</title>
-</head>
-<body>
-    @if(session('alertMessage'))
-    <script>alert("{{session('alertMessage')}}")</script>
-    @endif
-<script src="{{ asset('/js/application.js') }}"></script>
-<link rel="stylesheet" href="{{ asset('/css/application.css') }}">
-    @include('Pages.templates.sidebar')
-    <div id="edit-box">
-    <form action="" method="POST">
-    @csrf
-    @method('post')
-        <button  id="update-btn" formaction="{{route('toRoleActions',['actionType' => 'Edit'])}}" hidden>Update All Data</button>
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Role Name</th>
-            <th>Actions</th>
-        </tr>
-        @foreach($roles as $role)
-        <tr id = "{{$role->id}}">
-        <td><input class="column-data" type="text" name="{{'roleid'.$rowCount}}" value={{$role->id}} readonly></td>
-        <td><input class="column-data" type="text" name="{{'rolename'.$rowCount}}" value={{$role->name}} readonly></td>
-        <td>
-            <button class="column-data" type="button" onclick="roleEdit(event)">Edit</button><button class="column-data" type="button" hidden onclick="cancelRoleEdit(event)">Cancel Edit</button>
-            <br><button name="deletebtn" class="column-data" value="{{$role->id}}" formaction="{{route('toRoleActions',['actionType' => 'Delete'])}}">Delete</button>
-    
-        </td>
-        </tr>
-        <input hidden type="text" name="rowcount" value="{{$rowCount}}">
-        @php
-        $rowCount++;
-        @endphp
-        @endforeach
+@extends('Pages.tablelayout')
+@section('title', 'Admin | Roles')
+@section('pagename','Roles')'
+@section('updatecontent')
+    <form id="userForm" action="" method="POST">
+        @csrf
+        @method('post')
+        <div class="text-right mb-3">
+            <button id="update-btn" onclick="removeData()" formaction="{{route('toRoleActions',['actionType' => 'Edit'])}}" hidden><i class="fa-solid fa-floppy-disk"></i> Update All Data</button>
+        </div>
 
-    </table>
+        <table id="example1" class="table table-bordered table-striped" width="100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Role Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <input hidden type="text" id="rowcount" name="rowcount" value="">
+                @foreach($roles as $role)
+                    <tr id="{{ $role->id }}">
+                        <td>
+                            <label hidden>{{ $role->id ?? 'N/A' }}</label>
+                            <input class="form-control" type="text" name="{{ 'roleid' . $rowcount }}" value="{{ $role->id ?? 'N/A' }}" readonly>
+                        </td>
+                        <td>
+                            <label hidden>{{ $role->name ?? 'N/A' }}</label>
+                            <input class="form-control" type="text" name="{{ 'rolename' . $rowcount }}" value="{{ $role->name ?? 'N/A' }}" readonly>
+                        </td>
+                        <td>
+                            <button class="form-control edit-btn" type="button" onclick="roleEdit(event,{{ $rowcount }})"><i class="fa-solid fa-pen-to-square"></i> </button>
+                            <button class="form-control cancel-btn" type="button" onclick="cancelRoleEdit(event,{{ $rowcount }})" hidden><i class="fa-solid fa-ban"></i>  </button>
+                            <br>
+                            <button name="deletebtn" class="form-control delete-btn" value="{{ $role->id }}" formaction="{{ route('toRoleActions', ['actionType' => 'Delete']) }}"><i class="fa-solid fa-trash-can"></i> </button>
+                        </td>
+                    </tr>
+                    @php
+                        $rowcount++;
+                    @endphp
+                @endforeach
+            </tbody>
+        </table>
     </form>
-    </div>
-    <button type="button" onclick="showAddBox()">New Role</button>
-    <div id="add-box" hidden>
-    <form id="roleForm" method="POST" action="" enctype="multipart/form-data">
+    <script>
+    $(document).ready(function () {
+
+        $('.edit-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-primary btn-block');
+        });
+        $('.delete-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-danger btn-block btn-sm');
+        });
+        $('.cancel-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-danger btn-block btn-sm');
+        });
+        $('#update-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-success btn-block');
+        });
+
+
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        var userForm = document.getElementById('userForm');
+
+        // Initialize DataTables
+        var example1Table = $('#example1').DataTable({
+            scrollX: true,
+            scrollY: 400,
+            // Other DataTable options as needed
+        });
+
+        // Your other JavaScript code...
+
+        // Example: Submitting form with DataTables
+
+    });
+</script>
+@endsection
+
+@section('buttonText','New Role')
+@section('addBoxContent')
+@section('addBoxType','showAddBox()')
     @include('Pages.Admin-Roles.addroles')
-    <button type="submit" formaction="{{route('toRoleActions',['actionType' => 'Add'])}}">Add New Role</button>
-</form>
-    <button type="button" onclick="closeAddBox()">Cancel</button>
-    </div>
-</body>
-</html>
+@endsection

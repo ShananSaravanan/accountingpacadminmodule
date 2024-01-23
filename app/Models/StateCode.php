@@ -12,6 +12,23 @@ class StateCode extends Model
     use SoftDeletes;
     protected $table='statecode';
     public function postcode(){
-        return $this->belongsTo(PostCode::class,'id');
+        return $this->hasMany(PostCode::class,'stateCodeID','id');
+    }
+    public static $relationships = [];
+    public static function getRelationships()
+    {
+        return self::$relationships;
+    }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($statecode) {
+            // Delete related subscriptions
+            $statecode->postcode()->get()->each(function ($postcode) {
+                $postcode->delete();
+            });
+            
+        });
     }
 }

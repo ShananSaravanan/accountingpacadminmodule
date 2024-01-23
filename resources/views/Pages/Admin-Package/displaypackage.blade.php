@@ -1,58 +1,106 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | Package</title>
-</head>
-<body>
-    @if(session('alertMessage'))
-    <script>alert("{{session('alertMessage')}}")</script>
-    @endif
-<script src="{{ asset('/js/application.js') }}"></script>
-<link rel="stylesheet" href="{{ asset('/css/application.css') }}">
-    @include('Pages.templates.sidebar')
-    <div id="edit-box">
-    <form action="" method="POST">
-    @csrf
-    @method('post')
-        <button  id="update-btn" formaction="{{route('toPackageActions',['actionType' => 'Edit'])}}" hidden>Update All Data</button>
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Package Code</th>
-            <th>Package Name</th>
-            <th>User Limit</th>
-            <th>Actions</th>
-        </tr>
-        @foreach($packages as $package)
-        <tr id = "{{$package->id}}">
-        <td><input class="column-data" type="text" name="{{'packageid'.$rowCount}}" value={{$package->id}} readonly></td>
-        <td><input class="column-data" type="text" name="{{'packagecode'.$rowCount}}" value={{$package->PackageCode}} readonly></td>
-        <td><input class="column-data" type="text" name="{{'packagename'.$rowCount}}" value={{$package->name}} readonly></td>
-        <td><input class="column-data" type="number" name="{{'userlimit'.$rowCount}}" value={{$package->userlimit}} readonly></td>
-        <td>
-            <button class="column-data" type="button" onclick="packageEdit(event)">Edit</button><button class="column-data" type="button" hidden onclick="cancelPackageEdit(event)">Cancel Edit</button>
-            <br><button name="deletebtn" class="column-data" value="{{$package->id}}" formaction="{{route('toPackageActions',['actionType' => 'Delete'])}}">Delete</button>
-    
-        </td>
-        </tr>
-        <input hidden type="text" name="rowcount" value="{{$rowCount}}">
-        @php
-        $rowCount++;
-        @endphp
-        @endforeach
+@extends('Pages.tablelayout')
+@section('title', 'Admin | Packages')
+@section('pagename','Packages')
+@section('updatecontent')
+    <form id="userForm" action="" method="POST">
+        @csrf
+        @method('post')
+        <div class="text-right mb-3">
+            <button id="update-btn" onclick="removeData()" formaction="{{route('toPackageActions',['actionType' => 'Edit'])}}" hidden><i class="fa-solid fa-floppy-disk"></i> Update All Data</button>
+        </div>
 
-    </table>
+        <table id="example1" class="table table-bordered table-striped" width="100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Package Code</th>
+                    <th>Package Name</th>
+                    <th>User Limit</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <input hidden type="text" id="rowcount" name="rowcount" value="">
+                @foreach($packages as $package)
+                    <tr id="{{ $package->id }}">
+                        <td>
+                            <label hidden>{{ $package->id ?? 'N/A' }}</label>
+                            <input type="text" class="form-control" name="{{ 'packageid' . $rowcount }}" value="{{ $package->id ?? 'N/A' }}" readonly>
+                        </td>
+                        <td>
+                            <label hidden>{{ $package->PackageCode ?? 'N/A' }}</label>
+                            <input type="text" class="form-control" name="{{ 'packagecode' . $rowcount }}" value="{{ $package->PackageCode ?? 'N/A' }}" readonly>
+                        </td>
+                        <td>
+                            <label hidden>{{ $package->name ?? 'N/A' }}</label>
+                            <input type="text" class="form-control" name="{{ 'packagename' . $rowcount }}" value="{{ $package->name ?? 'N/A' }}" readonly>
+                        </td>
+                        <td>
+                            <label hidden>{{ $package->userlimit ?? 'N/A' }}</label>
+                            <input type="number" class="form-control" name="{{ 'userlimit' . $rowcount }}" value="{{ $package->userlimit ?? 'N/A' }}" readonly>
+                        </td>
+                        <td>
+                            <button class="form-control edit-btn" type="button" onclick="packageEdit(event,{{ $rowcount }})"><i class="fa-solid fa-pen-to-square"></i> </button>
+                            <button class="form-control cancel-btn" type="button" onclick="cancelPackageEdit(event,{{ $rowcount }})" hidden><i class="fa-solid fa-ban"></i>  </button>
+                            <br>
+                            <button class="form-control delete-btn" name="deletebtn" value="{{ $package->id }}" formaction="{{ route('toPackageActions', ['actionType' => 'Delete']) }}"><i class="fa-solid fa-trash-can"></i> </button>
+                        </td>
+                    </tr>
+                    @php
+                        $rowcount++;
+                    @endphp
+                @endforeach
+            </tbody>
+        </table>
     </form>
-    </div>
-    <button type="button" onclick="showAddBox()">New Package</button>
-    <div id="add-box" hidden>
-    <form id="addpackageForm" method="POST" action="" enctype="multipart/form-data">
+    <script>
+    $(document).ready(function () {
+
+        $('.edit-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-primary btn-block');
+        });
+        $('.delete-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-danger btn-block btn-sm');
+        });
+        $('.cancel-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-outline-danger btn-block btn-sm');
+        });
+        $('#update-btn').each(function () {
+
+            // Your logic to add classes or perform other actions based on rowcount and userid
+            $(this).addClass('btn btn-success btn-block');
+        });
+
+
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        var userForm = document.getElementById('userForm');
+
+        // Initialize DataTables
+        var example1Table = $('#example1').DataTable({
+            scrollX: true,
+            scrollY: 400,
+            // Other DataTable options as needed
+        });
+
+        // Your other JavaScript code...
+
+        // Example: Submitting form with DataTables
+
+    });
+</script>
+@endsection
+
+@section('buttonText','New Package')
+@section('addBoxContent')
+@section('addBoxType','showAddBox()')
     @include('Pages.Admin-Package.addpackage')
-    <button type="submit" formaction="{{route('toPackageActions',['actionType' => 'Add'])}}">Add New Package</button>
-    </form>
-    <button type="button" onclick="closeAddBox()">Cancel</button>
-    </div>
-</body>
-</html>
+
+@endsection

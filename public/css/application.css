@@ -1,3 +1,32 @@
+body {
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+}
 #displaypopup-box{
     visibility:hidden;
+}
+/* public/css/sidebar.css */
+
+.sidebar {
+    float: left;
+    width: 200px;
+    height: 100vh;
+    background-color: #333;
+    color: #fff;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#edit-box {
+    margin-left: 200px; /* Adjust the value based on your sidebar width */
+    padding: 20px; /* Add padding to the right to create space */
+    box-sizing: border-box;
+}
+
+.sidebar-section {
+    margin-bottom: 20px;
+}
+
+.sidebar p {
+    margin: 0;
 }
